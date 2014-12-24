@@ -1,0 +1,2 @@
+java -classpath . Server
+pause

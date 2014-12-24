@@ -1,0 +1,2 @@
+java -classpath . Client
+pause
