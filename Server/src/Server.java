@@ -96,11 +96,14 @@ public class Server {
         players.get(IDs.get(whoreIndex)).role = Role.WHORE;
         IDs.remove(whoreIndex);
 
+        ArrayList<User> maffs = new ArrayList<User>();
+
         int mafCnt = (playersCnt - 4) / 3 + 1;
         int i = playersCnt - 4;
         while (mafCnt > 0) {
             int mafIndex = (int)(Math.random() * i);
             players.get(IDs.get(mafIndex)).role = Role.MAFIA;
+            maffs.add(players.get(IDs.get(mafIndex)));
             IDs.remove(mafIndex);
             mafCnt--;
         }
@@ -113,6 +116,19 @@ public class Server {
         for (Map.Entry<Integer, User> pair : players.entrySet()) {
             System.out.println(pair.getValue().username + " " +  pair.getValue().role.toString());
             pair.getValue().send("\nMafff: You are " + pair.getValue().role.toString() + "\n");
+        }
+
+        for (User usr : maffs) {
+            usr.send("Mafff: Your accomplices: ");
+            for (User maff : maffs) {
+                if (usr != maff ) {
+                    if (maff.role.equals(Role.DON)) {
+                        usr.send("#" + maff.ID + " " + maff.username + " (DON)");
+                    } else {
+                        usr.send("#" + maff.ID + " " + maff.username);
+                    }
+                }
+            }
         }
 
     }
