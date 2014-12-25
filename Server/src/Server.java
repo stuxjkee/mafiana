@@ -94,9 +94,25 @@ public class Server {
 
         int whoreIndex = (int)(Math.random() * (playersCnt - 3));
         players.get(IDs.get(whoreIndex)).role = Role.WHORE;
+        IDs.remove(whoreIndex);
+
+        int mafCnt = (playersCnt - 4) / 3 + 1;
+        int i = playersCnt - 4;
+        while (mafCnt > 0) {
+            int mafIndex = (int)(Math.random() * i);
+            players.get(IDs.get(mafIndex)).role = Role.MAFIA;
+            IDs.remove(mafIndex);
+            mafCnt--;
+        }
+
+        for (Integer id : IDs) {
+            players.get(id).role = Role.CIVILIAN;
+        }
+
 
         for (Map.Entry<Integer, User> pair : players.entrySet()) {
-            System.out.println(pair.getValue().username + pair.getValue().role.toString());
+            System.out.println(pair.getValue().username + " " +  pair.getValue().role.toString());
+            pair.getValue().send("\nMafff: You are " + pair.getValue().role.toString() + "\n");
         }
 
     }
@@ -227,6 +243,7 @@ public class Server {
         }
 
         public synchronized void close() {
+            sendToAll("Server: " + username + " has left us");
             users.remove(this);
             if (!socket.isClosed()) {
                 try {
