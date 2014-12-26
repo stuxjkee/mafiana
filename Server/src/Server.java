@@ -17,7 +17,8 @@ public class Server {
     private int port;
     int usersCnt = 0;
     int playersCnt = 0;
-    boolean isStarted = false;
+    Stage stage = Stage.CHAT;
+
 
     BlockingQueue<User> users = new LinkedBlockingQueue<User>();
     ConcurrentHashMap<Integer, User> players = new ConcurrentHashMap<Integer, User>();
@@ -131,6 +132,8 @@ public class Server {
             }
         }
 
+        stage = Stage.NIGTH;
+
     }
 
     private class User implements Runnable {
@@ -141,6 +144,7 @@ public class Server {
         Role role;
         int ID;
         boolean isDead = false;
+        int votes = 0;
 
         public User(Socket socket) throws IOException {
             this.ID = ++usersCnt;
@@ -188,7 +192,7 @@ public class Server {
                     if (players.containsKey(ID)) {
                         send("Mafff: You already in the game");
                     }
-                    else if (isStarted) {
+                    else if (!stage.equals(Stage.CHAT)) {
                         send("Mafff: Can't join. Game already started");
                     } else {
                         players.put(ID, this);
@@ -199,20 +203,21 @@ public class Server {
                         }
                     }
                 } else if (line.equals("!start")) {
-                    if (isStarted) {
+                    if (!stage.equals(Stage.CHAT)) {
                         send("Mafff: Game already started");
                     } else if (playersCnt < 6) {
                         send("Mafff: Need " + (6 - playersCnt) + " more players to start the game");
                     } else {
-                        isStarted = true;
+                        stage = Stage.CASTING;
                         sendToAll("Mafff: Game started!");
+
                         casting();
                     }
                 } else if (line.equals("!leave")) {
                     if (!players.containsKey(ID)) {
                         send("Mafff: You can't leave. Are you playing?");
                     }
-                    else if (isStarted) {
+                    else if (!stage.equals(Stage.CHAT)) {
                         send("Mafff: Can't leave. Game already started");
                     } else {
                         sendToAll("Mafff: " + username + " has left the game");
