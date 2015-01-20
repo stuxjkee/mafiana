@@ -151,57 +151,102 @@ public class Server {
         }
     }
 
+    public static boolean isNumeric(String str)
+    {
+        try
+        {
+            double d = Double.parseDouble(str);
+        }
+        catch(NumberFormatException nfe)
+        {
+            return false;
+        }
+        return true;
+    }
+
     private void twait(User usr) {
-        while (usr.move.equals("")) {
+        boolean fl = false;
+        int victim = -1;
+        while (usr.move.equals("") && !fl) {
             try {
                 Thread.currentThread().sleep(30);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
+            if (usr.move.equals("")) continue;
+
+            fl = true;
+
+            if (!isNumeric(usr.move.substring(1, usr.move.length()))) {
+                fl = false;
+                usr.send("Mafff: Wrong command. Please, make a choice");
+                usr.move = "";
+            } else {
+                victim = Integer.parseInt(usr.move.substring(1, usr.move.length()));
+                if (!players.containsKey(victim)) {
+                    fl = false;
+                    usr.send("Mafff: Wrong ID");
+                    usr.move = "";
+                } else if (players.get(victim).isDead) {
+                    fl = false;
+                    usr.move = "";
+                    usr.send("Mafff: Error. " + players.get(victim).username + " is dead");
+                } else {
+
+                }
+            }
         }
-        System.out.println(usr.move);
+
+        System.out.println("Mafff: " + usr.username + " vote for " + players.get(victim).username);
+
     }
 
 
     private synchronized void night(){
         sendToAll("Night came. All people fall asleep, except for some...");
+        Thread don, detective, whore, doc;
         for (Map.Entry<Integer, User> pair : players.entrySet()) {
             if (pair.getValue().role.equals(Role.DON)) {
                 pair.getValue().send("Mafff: Who will not wake tomorrow? Write !ID");
                 final User cur = pair.getValue();
-                new Thread(new Runnable() {
+                don = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        twait(cur);
+                       twait(cur);
                     }
-                }).start();
+                });
+                don.start();
             } else if (pair.getValue().role.equals(Role.DETECTIVE)) {
                 pair.getValue().send("Mafff: Who will be checked tonight? Write !ID to check or !!ID to kill");
                 final User cur = pair.getValue();
-                new Thread(new Runnable() {
+                detective = new Thread(new Runnable() {
                     @Override
                     public void run() {
                         twait(cur);
                     }
-                }).start();
+                });
+                detective.start();
             } else if (pair.getValue().role.equals(Role.DOC)) {
                 pair.getValue().send("Mafff: Who will heal tonight? Write !ID");
                 final User cur = pair.getValue();
-                new Thread(new Runnable() {
+                doc = new Thread(new Runnable() {
                     @Override
                     public void run() {
                         twait(cur);
                     }
-                }).start();
+                });
+                doc.start();
             } else if (pair.getValue().role.equals(Role.WHORE)) {
                 pair.getValue().send("Mafff: Who will not sleep tonight? Write !ID");
                 final User cur = pair.getValue();
-                new Thread(new Runnable() {
+                whore = new Thread(new Runnable() {
                     @Override
                     public void run() {
                         twait(cur);
                     }
-                }).start();
+                });
+                whore.start();
             }
         }
     }
