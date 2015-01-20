@@ -134,6 +134,76 @@ public class Server {
 
         stage = Stage.NIGTH;
 
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                night();
+            }
+        }).start();
+
+    }
+
+
+    public synchronized void sendToAll(String line) {
+        System.out.println(line);
+        for (User usr : users) {
+            usr.send(line);
+        }
+    }
+
+    private void twait(User usr) {
+        while (usr.move.equals("")) {
+            try {
+                Thread.currentThread().sleep(30);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println(usr.move);
+    }
+
+
+    private synchronized void night(){
+        sendToAll("Night came. All people fall asleep, except for some...");
+        for (Map.Entry<Integer, User> pair : players.entrySet()) {
+            if (pair.getValue().role.equals(Role.DON)) {
+                pair.getValue().send("Mafff: Who will not wake tomorrow? Write !ID");
+                final User cur = pair.getValue();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        twait(cur);
+                    }
+                }).start();
+            } else if (pair.getValue().role.equals(Role.DETECTIVE)) {
+                pair.getValue().send("Mafff: Who will be checked tonight? Write !ID to check or !!ID to kill");
+                final User cur = pair.getValue();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        twait(cur);
+                    }
+                }).start();
+            } else if (pair.getValue().role.equals(Role.DOC)) {
+                pair.getValue().send("Mafff: Who will heal tonight? Write !ID");
+                final User cur = pair.getValue();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        twait(cur);
+                    }
+                }).start();
+            } else if (pair.getValue().role.equals(Role.WHORE)) {
+                pair.getValue().send("Mafff: Who will not sleep tonight? Write !ID");
+                final User cur = pair.getValue();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        twait(cur);
+                    }
+                }).start();
+            }
+        }
     }
 
     private class User implements Runnable {
@@ -142,6 +212,7 @@ public class Server {
         BufferedWriter bw;
         String username = "unnamed";
         Role role;
+        String move = "";
         int ID;
         boolean isDead = false;
         int votes = 0;
@@ -240,18 +311,14 @@ public class Server {
                             send("#" + pair.getKey() + " " + pair.getValue().username);
                     }
                     send("\n");
+                } else if (line.charAt(0) == '!' && stage.equals(Stage.NIGTH)) {
+                    move = line;
                 } else {
-                    sendToAll(username + ": " + line);
+                        sendToAll(username + ": " + line);
                 }
             }
         }
 
-        public synchronized void sendToAll(String line) {
-            System.out.println(line);
-            for (User usr : users) {
-                usr.send(line);
-            }
-        }
 
         public synchronized void send(String line) {
             try {
