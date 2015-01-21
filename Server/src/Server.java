@@ -153,12 +153,10 @@ public class Server {
 
     public static boolean isNumeric(String str)
     {
-        try
-        {
+        try {
             double d = Double.parseDouble(str);
         }
-        catch(NumberFormatException nfe)
-        {
+        catch(NumberFormatException nfe) {
             return false;
         }
         return true;
@@ -169,7 +167,7 @@ public class Server {
         int victim = -1;
         while (usr.move.equals("") && !fl) {
             try {
-                Thread.currentThread().sleep(30);
+                Thread.sleep(30);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -178,24 +176,54 @@ public class Server {
 
             fl = true;
 
-            if (!isNumeric(usr.move.substring(1, usr.move.length()))) {
+            victim = -1;
+
+            boolean detectiveKill = false;
+
+            if (usr.role.equals(Role.DETECTIVE) && isNumeric(usr.move.substring(2, usr.move.length()))) {
+                victim = Integer.parseInt(usr.move.substring(2, usr.move.length()));
+                detectiveKill = true;
+            }
+            else if (!isNumeric(usr.move.substring(1, usr.move.length()))) {
                 fl = false;
                 usr.send("Mafff: Wrong command. Please, make a choice");
                 usr.move = "";
-            } else {
-                victim = Integer.parseInt(usr.move.substring(1, usr.move.length()));
-                if (!players.containsKey(victim)) {
-                    fl = false;
-                    usr.send("Mafff: Wrong ID");
-                    usr.move = "";
-                } else if (players.get(victim).isDead) {
-                    fl = false;
-                    usr.move = "";
-                    usr.send("Mafff: Error. " + players.get(victim).username + " is dead");
-                } else {
+                continue;
+            }
 
+            if (victim != -1) victim = Integer.parseInt(usr.move.substring(1, usr.move.length()));
+            if (!players.containsKey(victim)) {
+                fl = false;
+                usr.send("Mafff: Wrong ID");
+                usr.move = "";
+            } else if (players.get(victim).isDead) {
+                fl = false;
+                usr.move = "";
+                usr.send("Mafff: Error. " + players.get(victim).username + " is dead");
+            } else {
+                if (usr.role.equals(Role.DON)) {
+                    players.get(victim).votes = -1;
+                    usr.send("Mafff: " + players.get(victim).username + " will be killed");
+                    players.get(victim).customer = usr;
+                }
+                if (usr.role.equals(Role.DETECTIVE)) {
+                    if (detectiveKill) {
+                        players.get(victim).votes = -1;
+                        usr.send("Mafff: " + players.get(victim).username + " will be killed");
+                        players.get(victim).customer = usr;
+                    } else {
+                        usr.move = "Mafff: " + players.get(victim).username + " is " + players.get(victim).role.toString();
+                    }
+                }
+                if (usr.role.equals(Role.DOC)) {
+                    if (players.get(victim).votes == -1) {
+                        players.get(victim).votes = 0;
+                        players.get(victim).customer = usr;
+                        usr.send("Mafff: " + players.get(victim).username + " will be live");
+                    }
                 }
             }
+
         }
 
         System.out.println("Mafff: " + usr.username + " vote for " + players.get(victim).username);
@@ -261,6 +289,7 @@ public class Server {
         int ID;
         boolean isDead = false;
         int votes = 0;
+        User customer = null;
 
         public User(Socket socket) throws IOException {
             this.ID = ++usersCnt;
