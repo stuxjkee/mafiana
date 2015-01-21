@@ -33,7 +33,7 @@ public class Server {
     }
 
     public void run() {
-        System.out.println("Server is running");
+        System.out.println("Сервер запущен");
         serverThread = Thread.currentThread();
         while (true) {
             Socket socket = getNewConnection();
@@ -116,15 +116,15 @@ public class Server {
 
         for (Map.Entry<Integer, User> pair : players.entrySet()) {
             System.out.println(pair.getValue().username + " " +  pair.getValue().role.toString());
-            pair.getValue().send("\nMafff: You are " + pair.getValue().role.toString() + "\n");
+            pair.getValue().send("\nMafff: Вы " + pair.getValue().role.toString() + "\n");
         }
 
         for (User usr : maffs) {
-            usr.send("Mafff: Your accomplices: ");
+            usr.send("Mafff: Выши сообщники: ");
             for (User maff : maffs) {
                 if (usr != maff ) {
                     if (maff.role.equals(Role.DON)) {
-                        usr.send("#" + maff.ID + " " + maff.username + " (DON)");
+                        usr.send("#" + maff.ID + " " + maff.username + " (Дон)");
                     } else {
                         usr.send("#" + maff.ID + " " + maff.username);
                     }
@@ -186,7 +186,7 @@ public class Server {
             }
             else if (!isNumeric(usr.move.substring(1, usr.move.length()))) {
                 fl = false;
-                usr.send("Mafff: Wrong command. Please, make a choice");
+                usr.send("Mafff: Неправильная команда. Пожалуйста, выберите жертву");
                 usr.move = "";
                 continue;
             }
@@ -194,49 +194,54 @@ public class Server {
             if (victim != -1) victim = Integer.parseInt(usr.move.substring(1, usr.move.length()));
             if (!players.containsKey(victim)) {
                 fl = false;
-                usr.send("Mafff: Wrong ID");
+                usr.send("Mafff: Такого игрока не существует");
                 usr.move = "";
             } else if (players.get(victim).isDead) {
                 fl = false;
                 usr.move = "";
-                usr.send("Mafff: Error. " + players.get(victim).username + " is dead");
+                usr.send("Mafff: Поздно. " + players.get(victim).username + " уже не с нами");
             } else {
                 if (usr.role.equals(Role.DON)) {
                     players.get(victim).votes = -1;
-                    usr.send("Mafff: " + players.get(victim).username + " will be killed");
+                    usr.send("Mafff: " + players.get(victim).username + " сегодня, скорее всего, уже не проснется");
+                    usr.victim = players.get(victim);
                     players.get(victim).customer = usr;
                 }
                 if (usr.role.equals(Role.DETECTIVE)) {
                     if (detectiveKill) {
                         players.get(victim).votes = -1;
-                        usr.send("Mafff: " + players.get(victim).username + " will be killed");
+                        usr.victim = players.get(victim);
+                        usr.send("Mafff: " + players.get(victim).username + " будет казнен");
                         players.get(victim).customer = usr;
                     } else {
-                        usr.move = "Mafff: " + players.get(victim).username + " is " + players.get(victim).role.toString();
+                        usr.victim = players.get(victim);
+                        usr.move = "Mafff: " + players.get(victim).username + " - " + players.get(victim).role.toString();
                     }
                 }
                 if (usr.role.equals(Role.DOC)) {
                     if (players.get(victim).votes == -1) {
-                        players.get(victim).votes = 0;
+                        players.get(victim).votes = -2;
                         players.get(victim).customer = usr;
-                        usr.send("Mafff: " + players.get(victim).username + " will be live");
+                        usr.victim = players.get(victim);
+                        usr.send("Mafff: " + players.get(victim).username + " сегодня будет жить");
                     }
                 }
             }
 
         }
 
-        System.out.println("Mafff: " + usr.username + " vote for " + players.get(victim).username);
+
+        System.out.println("Mafff: " + usr.username + " голосует за " + players.get(victim).username);
 
     }
 
 
     private synchronized void night(){
-        sendToAll("Night came. All people fall asleep, except for some...");
+        sendToAll("Наступет ночь. Все жители засыпают, кроме нектороых...");
         Thread don, detective, whore, doc;
         for (Map.Entry<Integer, User> pair : players.entrySet()) {
             if (pair.getValue().role.equals(Role.DON)) {
-                pair.getValue().send("Mafff: Who will not wake tomorrow? Write !ID");
+                pair.getValue().send("Mafff: К кому мафия направится этой ночью? Напишите !ID");
                 final User cur = pair.getValue();
                 don = new Thread(new Runnable() {
                     @Override
@@ -246,7 +251,7 @@ public class Server {
                 });
                 don.start();
             } else if (pair.getValue().role.equals(Role.DETECTIVE)) {
-                pair.getValue().send("Mafff: Who will be checked tonight? Write !ID to check or !!ID to kill");
+                pair.getValue().send("Mafff: К кому комиссар направится этой ночью? Напишите !ID для проверки или !!ID для казни");
                 final User cur = pair.getValue();
                 detective = new Thread(new Runnable() {
                     @Override
@@ -256,7 +261,7 @@ public class Server {
                 });
                 detective.start();
             } else if (pair.getValue().role.equals(Role.DOC)) {
-                pair.getValue().send("Mafff: Who will heal tonight? Write !ID");
+                pair.getValue().send("Mafff: Кого будем лечить? Напишите !ID");
                 final User cur = pair.getValue();
                 doc = new Thread(new Runnable() {
                     @Override
@@ -266,7 +271,7 @@ public class Server {
                 });
                 doc.start();
             } else if (pair.getValue().role.equals(Role.WHORE)) {
-                pair.getValue().send("Mafff: Who will not sleep tonight? Write !ID");
+                pair.getValue().send("Mafff: Кто не будет скучать этой ночью? Напишите !ID");
                 final User cur = pair.getValue();
                 whore = new Thread(new Runnable() {
                     @Override
@@ -290,6 +295,7 @@ public class Server {
         boolean isDead = false;
         int votes = 0;
         User customer = null;
+        User victim = null;
 
         public User(Socket socket) throws IOException {
             this.ID = ++usersCnt;
