@@ -180,7 +180,7 @@ public class Server {
 
             boolean detectiveKill = false;
 
-            if (usr.role.equals(Role.DETECTIVE) && isNumeric(usr.move.substring(2, usr.move.length()))) {
+            if (usr.role.equals(Role.DETECTIVE) && usr.move.charAt(1) == '!') {
                 victim = Integer.parseInt(usr.move.substring(2, usr.move.length()));
                 detectiveKill = true;
                 System.out.println("Detective choice");
@@ -195,12 +195,12 @@ public class Server {
             if (victim == -1) victim = Integer.parseInt(usr.move.substring(1, usr.move.length()));
             if (!players.containsKey(victim)) {
                 fl = false;
-                usr.send("Mafff: Error. Wrond played ID");
+                usr.send("Mafff: Error. Wrong played ID");
                 usr.move = "";
             } else if (players.get(victim).isDead) {
                 fl = false;
                 usr.move = "";
-                usr.send("Mafff: Later... " + players.get(victim).username + " is already dead");
+                usr.send("Mafff: Error" + players.get(victim).username + " is already dead");
             }
 
         }
@@ -210,29 +210,28 @@ public class Server {
         return victim;
     }
 
+    class PlayerThread extends Thread {
+        private int victim = -1;
+        User usr;
+
+        public PlayerThread(User usr) {
+            this.usr = usr;
+        }
+
+        @Override
+        public void run() {
+            victim = twait(usr);
+        }
+
+        public int getVictim() {
+            return victim;
+        }
+    }
 
 
 
     private synchronized void night(){
         sendToAll("Night");
-
-        class PlayerThread extends Thread {
-            private int victim = -1;
-            User usr;
-
-            public PlayerThread(User usr) {
-                this.usr = usr;
-            }
-
-            @Override
-            public void run() {
-                victim = twait(usr);
-            }
-
-            public int getVictim() {
-                return victim;
-            }
-        }
 
         PlayerThread don, detective, whore, doc;
 
@@ -243,25 +242,25 @@ public class Server {
                 final User cur = pair.getValue();
                 don = new PlayerThread(cur);
                 don.start();
-                int victim = don.getVictim();
+                cur.victim = players.get(don.getVictim());
             } else if (pair.getValue().role.equals(Role.DETECTIVE)) {
                 pair.getValue().send("Mafff: Who will be checked tonight? Write !ID to check or !!ID to kill");
                 final User cur = pair.getValue();
                 detective = new PlayerThread(cur);
                 detective.start();
-                int victim = detective.getVictim();
+                cur.victim = players.get(detective.getVictim());
             } else if (pair.getValue().role.equals(Role.DOC)) {
                 pair.getValue().send("Mafff: Who will be heal? Write !ID");
                 final User cur = pair.getValue();
                 doc = new PlayerThread(cur);
                 doc.start();
-                int victim = doc.getVictim();
+                cur.victim = players.get(doc.getVictim());
             } else if (pair.getValue().role.equals(Role.WHORE)) {
                 pair.getValue().send("Mafff: whore? Напишите !ID");
                 final User cur = pair.getValue();
                 whore = new PlayerThread(cur);
                 whore.start();
-                int victim = whore.getVictim();
+                cur.victim = players.get(whore.getVictim());
             }
         }
     }
