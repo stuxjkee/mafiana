@@ -33,7 +33,7 @@ public class Server {
     }
 
     public void run() {
-        System.out.println("Сервер запущен");
+        System.out.println("Server is started");
         serverThread = Thread.currentThread();
         while (true) {
             Socket socket = getNewConnection();
@@ -116,15 +116,15 @@ public class Server {
 
         for (Map.Entry<Integer, User> pair : players.entrySet()) {
             System.out.println(pair.getValue().username + " " +  pair.getValue().role.toString());
-            pair.getValue().send("\nMafff: Вы " + pair.getValue().role.toString() + "\n");
+            pair.getValue().send("\nMafff: You are " + pair.getValue().role.toString() + "\n");
         }
 
         for (User usr : maffs) {
-            usr.send("Mafff: Выши сообщники: ");
+            usr.send("Mafff: Your accomplices: ");
             for (User maff : maffs) {
                 if (usr != maff ) {
                     if (maff.role.equals(Role.DON)) {
-                        usr.send("#" + maff.ID + " " + maff.username + " (Дон)");
+                        usr.send("#" + maff.ID + " " + maff.username + " (DON)");
                     } else {
                         usr.send("#" + maff.ID + " " + maff.username);
                     }
@@ -162,7 +162,7 @@ public class Server {
         return true;
     }
 
-    private void twait(User usr) {
+    private int twait(User usr) {
         boolean fl = false;
         int victim = -1;
         while (usr.move.equals("") && !fl) {
@@ -183,103 +183,85 @@ public class Server {
             if (usr.role.equals(Role.DETECTIVE) && isNumeric(usr.move.substring(2, usr.move.length()))) {
                 victim = Integer.parseInt(usr.move.substring(2, usr.move.length()));
                 detectiveKill = true;
+                System.out.println("Detective choice");
             }
             else if (!isNumeric(usr.move.substring(1, usr.move.length()))) {
                 fl = false;
-                usr.send("Mafff: Неправильная команда. Пожалуйста, выберите жертву");
+                usr.send("Mafff: Wrong command.");
                 usr.move = "";
                 continue;
             }
 
-            if (victim != -1) victim = Integer.parseInt(usr.move.substring(1, usr.move.length()));
+            if (victim == -1) victim = Integer.parseInt(usr.move.substring(1, usr.move.length()));
             if (!players.containsKey(victim)) {
                 fl = false;
-                usr.send("Mafff: Такого игрока не существует");
+                usr.send("Mafff: Error. Wrond played ID");
                 usr.move = "";
             } else if (players.get(victim).isDead) {
                 fl = false;
                 usr.move = "";
-                usr.send("Mafff: Поздно. " + players.get(victim).username + " уже не с нами");
-            } else {
-                if (usr.role.equals(Role.DON)) {
-                    players.get(victim).votes = -1;
-                    usr.send("Mafff: " + players.get(victim).username + " сегодня, скорее всего, уже не проснется");
-                    usr.victim = players.get(victim);
-                    players.get(victim).customer = usr;
-                }
-                if (usr.role.equals(Role.DETECTIVE)) {
-                    if (detectiveKill) {
-                        players.get(victim).votes = -1;
-                        usr.victim = players.get(victim);
-                        usr.send("Mafff: " + players.get(victim).username + " будет казнен");
-                        players.get(victim).customer = usr;
-                    } else {
-                        usr.victim = players.get(victim);
-                        usr.move = "Mafff: " + players.get(victim).username + " - " + players.get(victim).role.toString();
-                    }
-                }
-                if (usr.role.equals(Role.DOC)) {
-                    if (players.get(victim).votes == -1) {
-                        players.get(victim).votes = -2;
-                        players.get(victim).customer = usr;
-                        usr.victim = players.get(victim);
-                        usr.send("Mafff: " + players.get(victim).username + " сегодня будет жить");
-                    }
-                }
+                usr.send("Mafff: Later... " + players.get(victim).username + " is already dead");
             }
 
         }
 
 
-        System.out.println("Mafff: " + usr.username + " голосует за " + players.get(victim).username);
-
+        //System.out.println("Mafff: " + usr.username + " vote for " + players.get(victim).username);
+        return victim;
     }
 
 
+
+
     private synchronized void night(){
-        sendToAll("Наступет ночь. Все жители засыпают, кроме нектороых...");
-        Thread don, detective, whore, doc;
+        sendToAll("Night");
+
+        class PlayerThread extends Thread {
+            private int victim = -1;
+            User usr;
+
+            public PlayerThread(User usr) {
+                this.usr = usr;
+            }
+
+            @Override
+            public void run() {
+                victim = twait(usr);
+            }
+
+            public int getVictim() {
+                return victim;
+            }
+        }
+
+        PlayerThread don, detective, whore, doc;
+
+
         for (Map.Entry<Integer, User> pair : players.entrySet()) {
             if (pair.getValue().role.equals(Role.DON)) {
-                pair.getValue().send("Mafff: К кому мафия направится этой ночью? Напишите !ID");
+                pair.getValue().send("Mafff: Who will be killed tonight? Write !ID");
                 final User cur = pair.getValue();
-                don = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                       twait(cur);
-                    }
-                });
+                don = new PlayerThread(cur);
                 don.start();
+                int victim = don.getVictim();
             } else if (pair.getValue().role.equals(Role.DETECTIVE)) {
-                pair.getValue().send("Mafff: К кому комиссар направится этой ночью? Напишите !ID для проверки или !!ID для казни");
+                pair.getValue().send("Mafff: Who will be checked tonight? Write !ID to check or !!ID to kill");
                 final User cur = pair.getValue();
-                detective = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        twait(cur);
-                    }
-                });
+                detective = new PlayerThread(cur);
                 detective.start();
+                int victim = detective.getVictim();
             } else if (pair.getValue().role.equals(Role.DOC)) {
-                pair.getValue().send("Mafff: Кого будем лечить? Напишите !ID");
+                pair.getValue().send("Mafff: Who will be heal? Write !ID");
                 final User cur = pair.getValue();
-                doc = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        twait(cur);
-                    }
-                });
+                doc = new PlayerThread(cur);
                 doc.start();
+                int victim = doc.getVictim();
             } else if (pair.getValue().role.equals(Role.WHORE)) {
-                pair.getValue().send("Mafff: Кто не будет скучать этой ночью? Напишите !ID");
+                pair.getValue().send("Mafff: whore? Напишите !ID");
                 final User cur = pair.getValue();
-                whore = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        twait(cur);
-                    }
-                });
+                whore = new PlayerThread(cur);
                 whore.start();
+                int victim = whore.getVictim();
             }
         }
     }
