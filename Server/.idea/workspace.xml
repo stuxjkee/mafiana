@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4d39b536-b193-4295-9ec4-9c02f32eb1e1" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="D:\develop\mafiana\Server\out\production\Server\Server$User.class" afterPath="D:\develop\mafiana\Server\out\production\Server\Server$User.class" />
+      <change type="MODIFICATION" beforePath="D:\develop\mafiana\Server\out\production\Server\Server.class" afterPath="D:\develop\mafiana\Server\out\production\Server\Server.class" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Server.java" afterPath="$PROJECT_DIR$/src/Server.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
@@ -46,14 +48,14 @@
       <file leaf-file-name="Server.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Server.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.27659574" vertical-offset="1838" max-vertical-offset="8058">
-              <caret line="115" column="9" selection-start-line="113" selection-start-column="31" selection-end-line="115" selection-end-column="9" />
+            <state vertical-scroll-proportion="0.92201835" vertical-offset="7520" max-vertical-offset="8024">
+              <caret line="477" column="0" selection-start-line="477" selection-start-column="0" selection-end-line="477" selection-end-column="0" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#590#596#0" expanded="true" />
                 <element signature="e#668#683#0" expanded="true" />
                 <element signature="e#2155#2164#0" expanded="true" />
-                <element signature="e#2958#2964#0" expanded="true" />
+                <element signature="e#2327#2333#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -452,7 +454,13 @@
       <option name="project" value="LOCAL" />
       <updated>1421933386613</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="upd">
+      <created>1422016331454</created>
+      <option name="number" value="00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1422016331454</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -536,7 +544,7 @@
             <element signature="e#590#596#0" expanded="true" />
             <element signature="e#668#683#0" expanded="true" />
             <element signature="e#2155#2164#0" expanded="true" />
-            <element signature="e#2958#2964#0" expanded="true" />
+            <element signature="e#2327#2333#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -566,7 +574,7 @@
             <element signature="e#590#596#0" expanded="true" />
             <element signature="e#668#683#0" expanded="true" />
             <element signature="e#2155#2164#0" expanded="true" />
-            <element signature="e#2958#2964#0" expanded="true" />
+            <element signature="e#2327#2333#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -603,7 +611,7 @@
             <element signature="e#590#596#0" expanded="true" />
             <element signature="e#668#683#0" expanded="true" />
             <element signature="e#2155#2164#0" expanded="true" />
-            <element signature="e#2958#2964#0" expanded="true" />
+            <element signature="e#2327#2333#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -640,7 +648,7 @@
             <element signature="e#590#596#0" expanded="true" />
             <element signature="e#668#683#0" expanded="true" />
             <element signature="e#2155#2164#0" expanded="true" />
-            <element signature="e#2958#2964#0" expanded="true" />
+            <element signature="e#2327#2333#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -677,7 +685,7 @@
             <element signature="e#590#596#0" expanded="true" />
             <element signature="e#668#683#0" expanded="true" />
             <element signature="e#2155#2164#0" expanded="true" />
-            <element signature="e#2958#2964#0" expanded="true" />
+            <element signature="e#2327#2333#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -706,7 +714,7 @@
             <element signature="e#590#596#0" expanded="true" />
             <element signature="e#668#683#0" expanded="true" />
             <element signature="e#2155#2164#0" expanded="true" />
-            <element signature="e#2958#2964#0" expanded="true" />
+            <element signature="e#2327#2333#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -735,7 +743,7 @@
             <element signature="e#590#596#0" expanded="true" />
             <element signature="e#668#683#0" expanded="true" />
             <element signature="e#2155#2164#0" expanded="true" />
-            <element signature="e#2958#2964#0" expanded="true" />
+            <element signature="e#2327#2333#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -764,7 +772,7 @@
             <element signature="e#590#596#0" expanded="true" />
             <element signature="e#668#683#0" expanded="true" />
             <element signature="e#2155#2164#0" expanded="true" />
-            <element signature="e#2958#2964#0" expanded="true" />
+            <element signature="e#2327#2333#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -793,7 +801,7 @@
             <element signature="e#590#596#0" expanded="true" />
             <element signature="e#668#683#0" expanded="true" />
             <element signature="e#2155#2164#0" expanded="true" />
-            <element signature="e#2958#2964#0" expanded="true" />
+            <element signature="e#2327#2333#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -822,7 +830,7 @@
             <element signature="e#590#596#0" expanded="true" />
             <element signature="e#668#683#0" expanded="true" />
             <element signature="e#2155#2164#0" expanded="true" />
-            <element signature="e#2958#2964#0" expanded="true" />
+            <element signature="e#2327#2333#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -967,14 +975,14 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Server.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.27659574" vertical-offset="1838" max-vertical-offset="8058">
-          <caret line="115" column="9" selection-start-line="113" selection-start-column="31" selection-end-line="115" selection-end-column="9" />
+        <state vertical-scroll-proportion="0.92201835" vertical-offset="7520" max-vertical-offset="8024">
+          <caret line="477" column="0" selection-start-line="477" selection-start-column="0" selection-end-line="477" selection-end-column="0" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#590#596#0" expanded="true" />
             <element signature="e#668#683#0" expanded="true" />
             <element signature="e#2155#2164#0" expanded="true" />
-            <element signature="e#2958#2964#0" expanded="true" />
+            <element signature="e#2327#2333#0" expanded="true" />
           </folding>
         </state>
       </provider>

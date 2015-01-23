@@ -81,9 +81,11 @@ public class Server {
             IDs.add(pair.getKey());
         }
 
+        ArrayList<User> maffs = new ArrayList<User>();
 
         int donIndex = (int)(Math.random() * playersCnt);
         players.get(IDs.get(donIndex)).role = Role.DON;
+        maffs.add(players.get(IDs.get(donIndex)));
         IDs.remove(donIndex);
 
         int detectiveIndex = (int)(Math.random() * (playersCnt - 1));
@@ -98,10 +100,9 @@ public class Server {
         players.get(IDs.get(whoreIndex)).role = Role.WHORE;
         IDs.remove(whoreIndex);
 
-        ArrayList<User> maffs = new ArrayList<User>();
 
-        maffs.add(players.get(IDs.get(donIndex)));
-        int mafCnt = (playersCnt - 4) / 3 + 1;
+
+        int mafCnt = (playersCnt - 3) / 3;
         int i = playersCnt - 4;
         while (mafCnt > 0) {
             int mafIndex = (int)(Math.random() * i);
@@ -180,12 +181,9 @@ public class Server {
 
             victim = -1;
 
-            boolean detectiveKill = false;
 
             if (usr.role.equals(Role.DETECTIVE) && usr.move.charAt(1) == '!') {
                 victim = Integer.parseInt(usr.move.substring(2, usr.move.length()));
-                detectiveKill = true;
-                System.out.println("Detective choice");
             }
             else if (!isNumeric(usr.move.substring(1, usr.move.length()))) {
                 fl = false;
@@ -203,8 +201,6 @@ public class Server {
 
         }
 
-
-        //System.out.println("Mafff: " + usr.username + " vote for " + players.get(victim).username);
         return victim;
     }
 
@@ -468,6 +464,8 @@ public class Server {
         public synchronized void close() {
             sendToAll("Server: " + username + " has left us");
             users.remove(this);
+            if (players.containsKey(this.ID))
+                players.remove(this.ID);
             if (!socket.isClosed()) {
                 try {
                     socket.close();
