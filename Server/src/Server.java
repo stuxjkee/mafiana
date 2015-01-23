@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -99,6 +100,7 @@ public class Server {
 
         ArrayList<User> maffs = new ArrayList<User>();
 
+        maffs.add(players.get(IDs.get(donIndex)));
         int mafCnt = (playersCnt - 4) / 3 + 1;
         int i = playersCnt - 4;
         while (mafCnt > 0) {
@@ -195,12 +197,8 @@ public class Server {
             if (victim == -1) victim = Integer.parseInt(usr.move.substring(1, usr.move.length()));
             if (!players.containsKey(victim)) {
                 fl = false;
-                usr.send("Mafff: Error. Wrong played ID");
+                usr.send("Mafff: Player are dead or not yet born");
                 usr.move = "";
-            } else if (players.get(victim).isDead) {
-                fl = false;
-                usr.move = "";
-                usr.send("Mafff: Error" + players.get(victim).username + " is already dead");
             }
 
         }
@@ -230,10 +228,10 @@ public class Server {
 
 
 
-    private synchronized void night(){
+    private synchronized void night() {
         sendToAll("Night");
-
-        PlayerThread don, detective, whore, doc;
+        Date before = new Date();
+        PlayerThread don = null, detective = null, whore = null, doc = null;
 
 
         for (Map.Entry<Integer, User> pair : players.entrySet()) {
@@ -242,25 +240,103 @@ public class Server {
                 final User cur = pair.getValue();
                 don = new PlayerThread(cur);
                 don.start();
-                cur.victim = players.get(don.getVictim());
             } else if (pair.getValue().role.equals(Role.DETECTIVE)) {
                 pair.getValue().send("Mafff: Who will be checked tonight? Write !ID to check or !!ID to kill");
                 final User cur = pair.getValue();
                 detective = new PlayerThread(cur);
                 detective.start();
-                cur.victim = players.get(detective.getVictim());
             } else if (pair.getValue().role.equals(Role.DOC)) {
                 pair.getValue().send("Mafff: Who will be heal? Write !ID");
                 final User cur = pair.getValue();
                 doc = new PlayerThread(cur);
                 doc.start();
-                cur.victim = players.get(doc.getVictim());
             } else if (pair.getValue().role.equals(Role.WHORE)) {
-                pair.getValue().send("Mafff: whore? Напишите !ID");
+                pair.getValue().send("Mafff: whore? write !ID");
                 final User cur = pair.getValue();
                 whore = new PlayerThread(cur);
                 whore.start();
-                cur.victim = players.get(whore.getVictim());
+            }
+        }
+        boolean docSuccess = false;
+
+        boolean sunrise = false;
+
+        do {
+            sunrise = true;
+            Date after = new Date();
+            if (don.isAlive() || doc.isAlive() || whore.isAlive() || detective.isAlive())
+                sunrise = false;
+            if (after.getTime()/1000 - before.getTime()/1000 >= 100)
+                sunrise = true;
+        } while (!sunrise);
+
+        sendToAll("Mafff: Night ended");
+
+        for (Map.Entry<Integer, User> pair : players.entrySet()) {
+            if (pair.getValue().role.equals(Role.DON) && don.getVictim() != -1) {
+                pair.getValue().victim = players.get(don.getVictim());
+                pair.getValue().victim.isDead = 1;
+            }
+            if (pair.getValue().role.equals(Role.DETECTIVE) && don.getVictim() != -1) {
+                pair.getValue().victim = players.get(detective.getVictim());
+                if (pair.getValue().move.charAt(1) == '!') {
+                    pair.getValue().send("Mafff: " + pair.getValue().victim.username + " - "
+                            + pair.getValue().victim.role.toString());
+                    pair.getValue().victim = null;
+                } else {
+                    pair.getValue().victim.isDead = 1;
+                }
+            }
+            if (pair.getValue().role.equals(Role.DOC) && doc.getVictim() != -1) {
+                pair.getValue().victim = players.get(doc.getVictim());
+                if (pair.getValue().victim.isDead == 1) {
+                    pair.getValue().victim.isDead = 2;
+                    docSuccess = true;
+                }
+            }
+            if (pair.getValue().role.equals(Role.WHORE) && whore.getVictim() != -1) {
+                pair.getValue().victim = players.get(whore.getVictim());
+                //do something
+            }
+        }
+
+
+        for (Map.Entry<Integer, User> pair : players.entrySet()) {
+            if (pair.getValue().victim != null) {
+                if (pair.getValue().role.equals(Role.DON)) {
+                    if (pair.getValue().victim.isDead == 1) {
+                        sendToAll(pair.getValue().victim.username + " (" + pair.getValue().victim.role
+                                + ") " + " was killed by mafia");
+                        players.remove(pair.getValue().victim.ID);
+                    }
+                    if (pair.getValue().victim.isDead == 2) {
+                        sendToAll("Doc rescued from detective" + pair.getValue().victim.username);
+                        pair.getValue().victim.isDead = 0;
+                        pair.getValue().victim = null;
+                        docSuccess = true;
+                    }
+                }
+                if (pair.getValue().role.equals(Role.DETECTIVE)) {
+                    if (pair.getValue().move.charAt(1) == '!') {
+                        if (pair.getValue().isDead == 1) {
+                            sendToAll(pair.getValue().victim.username + " (" + pair.getValue().victim.role
+                                + ") " + " was killed by detective");
+                            players.remove(pair.getValue().victim.ID);
+                        } else if (pair.getValue().isDead == 2) {
+                            sendToAll("Doc rescued from detective" + pair.getValue().victim.username);
+                            docSuccess = true;
+                            pair.getValue().victim.isDead = 0;
+                            pair.getValue().victim = null;
+                        }
+                    }
+                }
+                if (pair.getValue().role.equals(Role.DOC)) {
+                    if (!docSuccess) {
+                        sendToAll("Doc overnight treated " + pair.getValue().victim.username);
+                        pair.getValue().victim.isDead = 0;
+                        pair.getValue().victim = null;
+                    }
+                }
             }
         }
     }
@@ -273,9 +349,8 @@ public class Server {
         Role role;
         String move = "";
         int ID;
-        boolean isDead = false;
-        int votes = 0;
-        User customer = null;
+        int isDead = 0; //0 - live, 1 - dead, 2 - was healed
+
         User victim = null;
 
         public User(Socket socket) throws IOException {
@@ -368,7 +443,6 @@ public class Server {
                 } else if (line.equals("!players")) {
                     send("\nMafff: Active players: ID - Username\n");
                     for (Map.Entry<Integer, User> pair : players.entrySet()) {
-                        if (!pair.getValue().isDead)
                             send("#" + pair.getKey() + " " + pair.getValue().username);
                     }
                     send("\n");
