@@ -4,9 +4,5 @@
  */
 public enum Stage {
     CHAT,
-    CASTING,
-    NIGTH,
-    DAY,
-    VOTE,
-    FINISH;
+    GAME;
 }

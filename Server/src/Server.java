@@ -1,4 +1,5 @@
 import java.io.*;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -25,6 +26,8 @@ public class Server {
     ConcurrentHashMap<Integer, User> players = new ConcurrentHashMap<Integer, User>();
 
     public static void main(String args[]) throws IOException{
+        InetAddress address = InetAddress.getLocalHost();
+        System.out.println(address.toString());
         new Server(45000).run();
     }
 
@@ -135,7 +138,7 @@ public class Server {
             }
         }
 
-        stage = Stage.NIGTH;
+        stage = Stage.GAME;
 
         new Thread(new Runnable() {
             @Override
@@ -227,17 +230,23 @@ public class Server {
     private synchronized void day() {
         Date before = new Date();
 
+
         ConcurrentHashMap<User, PlayerThread> playerThreads = new ConcurrentHashMap<User, PlayerThread>();
         ArrayList<User> victims = new ArrayList<User>();
         maffCnt = civCnt = 0;
 
+        User don = null;
 
         for (Map.Entry<Integer, User> pair : players.entrySet()) {
+            if (pair.getValue().role.equals(Role.DON))
+                don = pair.getValue();
             if (pair.getValue().role.equals(Role.MAFIA) || pair.getValue().role.equals(Role.DON))
                 maffCnt++;
             else
                 civCnt++;
             pair.getValue().victim = null;
+            pair.getValue().votes = 0;
+            pair.getValue().isDead = 0;
             PlayerThread cur = new PlayerThread(pair.getValue());
             playerThreads.put(pair.getValue(), cur);
             cur.start();
@@ -246,6 +255,8 @@ public class Server {
 
         int playersCnt = maffCnt + civCnt;
         int cnt = 0;
+
+        boolean successDay;
 
         while (true) {
             Date after = new Date();
@@ -261,19 +272,67 @@ public class Server {
                     }
                 }
             }
+
             if (victims.size() == 1) {
-                sendToAll("Mafff: " + victims.get(0).username + " (" + victims.get(0).role.toString() + " ) was killed");
+                successDay = true;
+                sendToAll("Mafff: " + victims.get(0).username + " (" + victims.get(0).role.toString() + " ) was arrested");
                 players.remove(victims.get(0));
                 break;
+            } else {
+                successDay = false;
             }
+
             if (after.getTime()/1000 - before.getTime()/1000 >= 100)
                 break;
             if (playersCnt == cnt)
                 break;
         }
 
+        if (!successDay)
+            sendToAll("Mafff: This time the people decided not to execute anyone");
 
+        if (isFinish()) {
+            finish();
+        } else {
+            night();
+       }
 
+    }
+
+    private boolean isFinish() {
+        if (maffCnt == civCnt) {
+            sendToAll("Mafff: GAME OVER. MAFIA WINS!");
+            return true;
+        } else if (maffCnt == 0) {
+            sendToAll("Mafff: GAME ENDED. CIVILIAN WINS!");
+            return true;
+        } else {
+            User don = null;
+            for (Map.Entry<Integer, User> pair : players.entrySet()) {
+                if (pair.getValue().role.equals(Role.DON)) {
+                    don = pair.getValue();
+                }
+            }
+            if (don == null) {
+                for (Map.Entry<Integer, User> pair : players.entrySet()) {
+                    if (pair.getValue().role.equals(Role.MAFIA)) {
+                        pair.getValue().role = Role.DON;
+                        pair.getValue().send("Mafff: Your are DON now");
+                        break;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private void finish() {
+        for (Map.Entry<Integer, User> pair : players.entrySet()) {
+            pair.getValue().victim = null;
+            pair.getValue().votes = 0;
+            pair.getValue().isDead = 0;
+            sendToAll(pair.getValue().username + " was a " + pair.getValue().role.toString());
+        }
     }
 
     private synchronized void night() {
@@ -326,7 +385,7 @@ public class Server {
                     sunrise = false;
             }
             if (doc != null) {
-                if (detective.isAlive())
+                if (doc.isAlive())
                     sunrise = false;
             }
             if (whore != null) {
@@ -354,9 +413,9 @@ public class Server {
                 }
             }
             if (detective != null) {
-                if (pair.getValue().role.equals(Role.DETECTIVE) && don.getVictim() != -1) {
+                if (pair.getValue().role.equals(Role.DETECTIVE) && detective.getVictim() != -1) {
                     pair.getValue().victim = players.get(detective.getVictim());
-                    if (pair.getValue().move.charAt(1) == '!') {
+                    if (pair.getValue().move.charAt(1) != '!') {
                         pair.getValue().send("Mafff: " + pair.getValue().victim.username + " - "
                                 + pair.getValue().victim.role.toString());
                         pair.getValue().victim = null;
@@ -390,9 +449,8 @@ public class Server {
                         sendToAll(pair.getValue().victim.username + " (" + pair.getValue().victim.role
                                 + ") " + " was killed by mafia");
                         players.remove(pair.getValue().victim.ID);
-                    }
-                    if (pair.getValue().victim.isDead == 2) {
-                        sendToAll("Doc rescued from detective" + pair.getValue().victim.username);
+                    } else {
+                        sendToAll("Doc rescued from mafia" + pair.getValue().victim.username);
                         pair.getValue().victim.isDead = 0;
                         pair.getValue().victim = null;
                         docSuccess = true;
@@ -421,6 +479,11 @@ public class Server {
                 }
             }
             pair.getValue().victim = null;
+            if (isFinish()) {
+                finish();
+            } else {
+                day();
+            }
         }
     }
 
@@ -498,7 +561,6 @@ public class Server {
                     } else if (playersCnt < 6) {
                         send("Mafff: Need " + (6 - playersCnt) + " more players to start the game");
                     } else {
-                        stage = Stage.CASTING;
                         sendToAll("Mafff: Game started!");
 
                         casting();
@@ -529,7 +591,7 @@ public class Server {
                             send("#" + pair.getKey() + " " + pair.getValue().username);
                     }
                     send("\n");
-                } else if (line.charAt(0) == '!' && stage.equals(Stage.NIGTH)) {
+                } else if (line.charAt(0) == '!' && stage.equals(Stage.GAME)) {
                     move = line;
                 } else {
                         sendToAll(username + ": " + line);
@@ -551,8 +613,10 @@ public class Server {
         public synchronized void close() {
             sendToAll("Server: " + username + " has left us");
             users.remove(this);
-            if (players.containsKey(this.ID))
+            if (players.containsKey(this.ID)) {
+                sendToAll("Mafff: " + username + " (" + role.toString() + ") has left the game");
                 players.remove(this.ID);
+            }
             if (!socket.isClosed()) {
                 try {
                     socket.close();

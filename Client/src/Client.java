@@ -13,7 +13,12 @@ public class Client {
 
     public static void main(String args[]) {
         try {
-            new Client("localhost", 45000).run();
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print("Write server IP: ");
+            String serverIP = br.readLine();
+            if (serverIP.equals(""))
+                serverIP = "localhost";
+            new Client(serverIP, 45000).run();
         } catch (IOException e) {
             System.out.println("Unable to connect. Server not running?");
         }
