@@ -157,7 +157,7 @@ public class Server {
     public static boolean isNumeric(String str)
     {
         try {
-            double d = Double.parseDouble(str);
+            Integer.parseInt(str);
         }
         catch(NumberFormatException nfe) {
             return false;
@@ -312,7 +312,7 @@ public class Server {
         }
         boolean docSuccess = false;
 
-        boolean sunrise = false;
+        boolean sunrise;
 
         do {
             sunrise = true;
