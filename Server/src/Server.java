@@ -222,15 +222,72 @@ public class Server {
         }
     }
 
+    int maffCnt = 0, civCnt = 0;
 
+    private synchronized void day() {
+        Date before = new Date();
+
+        ConcurrentHashMap<User, PlayerThread> playerThreads = new ConcurrentHashMap<User, PlayerThread>();
+        ArrayList<User> victims = new ArrayList<User>();
+        maffCnt = civCnt = 0;
+
+
+        for (Map.Entry<Integer, User> pair : players.entrySet()) {
+            if (pair.getValue().role.equals(Role.MAFIA) || pair.getValue().role.equals(Role.DON))
+                maffCnt++;
+            else
+                civCnt++;
+            pair.getValue().victim = null;
+            PlayerThread cur = new PlayerThread(pair.getValue());
+            playerThreads.put(pair.getValue(), cur);
+            cur.start();
+            pair.getValue().send("Mafff: Write !ID to vote for some player");
+        }
+
+        int playersCnt = maffCnt + civCnt;
+        int cnt = 0;
+
+        while (true) {
+            Date after = new Date();
+            for (Map.Entry<User, PlayerThread> pair : playerThreads.entrySet()) {
+                if (pair.getValue().getVictim() != -1 && pair.getKey().victim == null) {
+                    User victim = players.get(pair.getValue().getVictim());
+                    victim.votes++;
+                    sendToAll("Mafff: " + pair.getKey().username + " vote for " + victim.username + " (" + victim.votes + ")");
+                    pair.getKey().victim = victim;
+                    cnt++;
+                    if (victims.size() == 0 || (!victims.contains(victim) && victims.get(0).votes <= victim.votes)) {
+                        victims.add(victim);
+                    }
+                }
+            }
+            if (victims.size() == 1) {
+                sendToAll("Mafff: " + victims.get(0).username + " (" + victims.get(0).role.toString() + " ) was killed");
+                players.remove(victims.get(0));
+                break;
+            }
+            if (after.getTime()/1000 - before.getTime()/1000 >= 100)
+                break;
+            if (playersCnt == cnt)
+                break;
+        }
+
+
+
+    }
 
     private synchronized void night() {
         sendToAll("Night");
         Date before = new Date();
         PlayerThread don = null, detective = null, whore = null, doc = null;
 
+        maffCnt = civCnt = 0;
 
         for (Map.Entry<Integer, User> pair : players.entrySet()) {
+            if (pair.getValue().role.equals(Role.DON) || pair.getValue().role.equals(Role.MAFIA))
+                maffCnt++;
+            else
+                civCnt++;
             if (pair.getValue().role.equals(Role.DON)) {
                 pair.getValue().send("Mafff: Who will be killed tonight? Write !ID");
                 final User cur = pair.getValue();
@@ -260,39 +317,68 @@ public class Server {
         do {
             sunrise = true;
             Date after = new Date();
-            if (don.isAlive() || doc.isAlive() || whore.isAlive() || detective.isAlive())
-                sunrise = false;
-            if (after.getTime()/1000 - before.getTime()/1000 >= 100)
+            if (don != null) {
+                if (don.isAlive())
+                    sunrise = false;
+            }
+            if (detective != null) {
+                if (detective.isAlive())
+                    sunrise = false;
+            }
+            if (doc != null) {
+                if (detective.isAlive())
+                    sunrise = false;
+            }
+            if (whore != null) {
+                if (whore.isAlive())
+                    sunrise = false;
+            }
+            if (after.getTime()/1000 - before.getTime()/1000 >= 100) {
                 sunrise = true;
+                try {
+                    don.interrupt();
+                    detective.interrupt();
+                    whore.interrupt();
+                    doc.interrupt();
+                } catch (NullPointerException ignored) {}
+            }
         } while (!sunrise);
 
         sendToAll("Mafff: Night ended");
 
         for (Map.Entry<Integer, User> pair : players.entrySet()) {
-            if (pair.getValue().role.equals(Role.DON) && don.getVictim() != -1) {
-                pair.getValue().victim = players.get(don.getVictim());
-                pair.getValue().victim.isDead = 1;
-            }
-            if (pair.getValue().role.equals(Role.DETECTIVE) && don.getVictim() != -1) {
-                pair.getValue().victim = players.get(detective.getVictim());
-                if (pair.getValue().move.charAt(1) == '!') {
-                    pair.getValue().send("Mafff: " + pair.getValue().victim.username + " - "
-                            + pair.getValue().victim.role.toString());
-                    pair.getValue().victim = null;
-                } else {
+            if (don != null) {
+                if (pair.getValue().role.equals(Role.DON) && don.getVictim() != -1) {
+                    pair.getValue().victim = players.get(don.getVictim());
                     pair.getValue().victim.isDead = 1;
                 }
             }
-            if (pair.getValue().role.equals(Role.DOC) && doc.getVictim() != -1) {
-                pair.getValue().victim = players.get(doc.getVictim());
-                if (pair.getValue().victim.isDead == 1) {
-                    pair.getValue().victim.isDead = 2;
-                    docSuccess = true;
+            if (detective != null) {
+                if (pair.getValue().role.equals(Role.DETECTIVE) && don.getVictim() != -1) {
+                    pair.getValue().victim = players.get(detective.getVictim());
+                    if (pair.getValue().move.charAt(1) == '!') {
+                        pair.getValue().send("Mafff: " + pair.getValue().victim.username + " - "
+                                + pair.getValue().victim.role.toString());
+                        pair.getValue().victim = null;
+                    } else {
+                        pair.getValue().victim.isDead = 1;
+                    }
                 }
             }
-            if (pair.getValue().role.equals(Role.WHORE) && whore.getVictim() != -1) {
-                pair.getValue().victim = players.get(whore.getVictim());
-                //do something
+            if (doc != null) {
+                if (pair.getValue().role.equals(Role.DOC) && doc.getVictim() != -1) {
+                    pair.getValue().victim = players.get(doc.getVictim());
+                    if (pair.getValue().victim.isDead == 1) {
+                        pair.getValue().victim.isDead = 2;
+                        docSuccess = true;
+                    }
+                }
+            }
+            if (whore != null) {
+                if (pair.getValue().role.equals(Role.WHORE) && whore.getVictim() != -1) {
+                    pair.getValue().victim = players.get(whore.getVictim());
+                    //do something
+                }
             }
         }
 
@@ -334,6 +420,7 @@ public class Server {
                     }
                 }
             }
+            pair.getValue().victim = null;
         }
     }
 
@@ -346,7 +433,7 @@ public class Server {
         String move = "";
         int ID;
         int isDead = 0; //0 - live, 1 - dead, 2 - was healed
-
+        int votes = 0;
         User victim = null;
 
         public User(Socket socket) throws IOException {
