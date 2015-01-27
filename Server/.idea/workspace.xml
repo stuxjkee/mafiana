@@ -2,14 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4d39b536-b193-4295-9ec4-9c02f32eb1e1" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Client/out/production/Client/Client$Receiver.class" afterPath="$PROJECT_DIR$/../Client/out/production/Client/Client$Receiver.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Client/out/production/Client/Client.class" afterPath="$PROJECT_DIR$/../Client/out/production/Client/Client.class" />
-      <change type="MODIFICATION" beforePath="D:\develop\mafiana\Server\out\production\Server\Server$User.class" afterPath="D:\develop\mafiana\Server\out\production\Server\Server$User.class" />
-      <change type="MODIFICATION" beforePath="D:\develop\mafiana\Server\out\production\Server\Server.class" afterPath="D:\develop\mafiana\Server\out\production\Server\Server.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Client/src/Client.java" afterPath="$PROJECT_DIR$/../Client/src/Client.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/Server/Server$User.class" afterPath="$PROJECT_DIR$/out/production/Server/Server$User.class" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/Server/Server.class" afterPath="$PROJECT_DIR$/out/production/Server/Server.class" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Server.java" afterPath="$PROJECT_DIR$/src/Server.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Stage.java" afterPath="$PROJECT_DIR$/src/Stage.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../Client/.idea/workspace.xml" afterPath="$PROJECT_DIR$/../Client/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="Server.iws" />
@@ -53,8 +48,8 @@
       <file leaf-file-name="Server.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Server.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.4226044" vertical-offset="3772" max-vertical-offset="10591">
-              <caret line="243" column="26" selection-start-line="243" selection-start-column="26" selection-end-line="243" selection-end-column="26" />
+            <state vertical-scroll-proportion="-0.16972478" vertical-offset="6721" max-vertical-offset="10557">
+              <caret line="402" column="31" selection-start-line="402" selection-start-column="31" selection-end-line="402" selection-end-column="31" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#619#625#0" expanded="true" />
@@ -148,6 +143,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -193,18 +189,9 @@
               <option name="myItemId" value="out" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="production" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Server" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
       <pane id="PackagesPane" />
     </panes>
   </component>
@@ -519,7 +506,13 @@
       <option name="project" value="LOCAL" />
       <updated>1422233480545</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="upd">
+      <created>1422279118529</created>
+      <option name="number" value="00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1422279118529</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -1058,8 +1051,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Server.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.4226044" vertical-offset="3772" max-vertical-offset="10591">
-          <caret line="243" column="26" selection-start-line="243" selection-start-column="26" selection-end-line="243" selection-end-column="26" />
+        <state vertical-scroll-proportion="-0.16972478" vertical-offset="6721" max-vertical-offset="10557">
+          <caret line="402" column="31" selection-start-line="402" selection-start-column="31" selection-end-line="402" selection-end-column="31" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#619#625#0" expanded="true" />

@@ -256,8 +256,6 @@ public class Server {
         int playersCnt = maffCnt + civCnt;
         int cnt = 0;
 
-        boolean successDay;
-
         while (true) {
             Date after = new Date();
             for (Map.Entry<User, PlayerThread> pair : playerThreads.entrySet()) {
@@ -270,16 +268,20 @@ public class Server {
                     if (victims.size() == 0 || (!victims.contains(victim) && victims.get(0).votes <= victim.votes)) {
                         victims.add(victim);
                     }
+                    pair.getValue().interrupt();
+                    playerThreads.remove(pair.getKey());
+                } else {
+                    try {
+                        Thread.sleep(30);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
-            if (victims.size() == 1) {
-                successDay = true;
-                sendToAll("Mafff: " + victims.get(0).username + " (" + victims.get(0).role.toString() + " ) was arrested");
-                players.remove(victims.get(0));
-                break;
-            } else {
-                successDay = false;
+            if (victims.size() > 0) {
+                if (victims.get(0).votes > cnt / 2)
+                    break;
             }
 
             if (after.getTime()/1000 - before.getTime()/1000 >= 100)
@@ -288,8 +290,13 @@ public class Server {
                 break;
         }
 
-        if (!successDay)
+        if (victims.size() == 1) {
+            sendToAll("Mafff: " + victims.get(0).username + " (" + victims.get(0).role.toString() + " ) was arrested");
+            players.remove(victims.get(0).ID);
+        } else {
             sendToAll("Mafff: This time the people decided not to execute anyone");
+        }
+
 
         if (isFinish()) {
             finish();
@@ -405,41 +412,34 @@ public class Server {
 
         sendToAll("Mafff: Night ended");
 
-        for (Map.Entry<Integer, User> pair : players.entrySet()) {
-            if (don != null) {
-                if (pair.getValue().role.equals(Role.DON) && don.getVictim() != -1) {
-                    pair.getValue().victim = players.get(don.getVictim());
-                    pair.getValue().victim.isDead = 1;
+        try {
+            if (don.getVictim() != -1) {
+                don.usr.victim = players.get(don.getVictim());
+                don.usr.victim.isDead = 1;
+                don.usr.send("Mafff: Go to " + don.usr.victim.username);
+            }
+            if (detective.getVictim() != -1) {
+                detective.usr.victim = players.get(detective.getVictim());
+                if (detective.usr.move.charAt(1) != '!') {
+                    detective.usr.send("Mafff: " + detective.usr.victim.username + " - "
+                            + detective.usr.victim.role.toString());
+                    detective.usr.victim = null;
+                } else {
+                    detective.usr.victim.isDead = 1;
+                    detective.usr.send("Mafff: Go to " + detective.usr.victim.username);
                 }
             }
-            if (detective != null) {
-                if (pair.getValue().role.equals(Role.DETECTIVE) && detective.getVictim() != -1) {
-                    pair.getValue().victim = players.get(detective.getVictim());
-                    if (pair.getValue().move.charAt(1) != '!') {
-                        pair.getValue().send("Mafff: " + pair.getValue().victim.username + " - "
-                                + pair.getValue().victim.role.toString());
-                        pair.getValue().victim = null;
-                    } else {
-                        pair.getValue().victim.isDead = 1;
-                    }
-                }
+            if (doc.getVictim() != -1) {
+                doc.usr.victim = players.get(doc.getVictim());
+                doc.usr.victim.isDead = 2;
+                doc.usr.send("Mafff: Go to " + doc.usr.victim.username);
             }
-            if (doc != null) {
-                if (pair.getValue().role.equals(Role.DOC) && doc.getVictim() != -1) {
-                    pair.getValue().victim = players.get(doc.getVictim());
-                    if (pair.getValue().victim.isDead == 1) {
-                        pair.getValue().victim.isDead = 2;
-                        docSuccess = true;
-                    }
-                }
+            if (whore.getVictim() != -1) {
+                whore.usr.victim = players.get(whore.getVictim());
+                //do something
+                whore.usr.send("Mafff: Go to " + whore.usr.victim.username);
             }
-            if (whore != null) {
-                if (pair.getValue().role.equals(Role.WHORE) && whore.getVictim() != -1) {
-                    pair.getValue().victim = players.get(whore.getVictim());
-                    //do something
-                }
-            }
-        }
+        } catch (NullPointerException ignored) {}
 
 
         for (Map.Entry<Integer, User> pair : players.entrySet()) {
@@ -471,11 +471,9 @@ public class Server {
                     }
                 }
                 if (pair.getValue().role.equals(Role.DOC)) {
-                    if (!docSuccess) {
-                        sendToAll("Doc overnight treated " + pair.getValue().victim.username);
-                        pair.getValue().victim.isDead = 0;
-                        pair.getValue().victim = null;
-                    }
+                    sendToAll("Doc overnight treated " + pair.getValue().victim.username);
+                    pair.getValue().victim.isDead = 0;
+                    pair.getValue().victim = null;
                 }
             }
             pair.getValue().victim = null;
