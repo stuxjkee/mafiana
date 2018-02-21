@@ -1,4 +1,4 @@
 mafiana
 =======
 
-my coursework - console version of popular role game
+console version of popular role game
